@@ -1,0 +1,25 @@
+<html>
+<head>
+  <title> Download </title>
+</head>
+<body>
+    <script>
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent("{{ data }}"));
+      if ({{ json }}) {
+      element.setAttribute('download', '{{ code }}.GeoJSON');
+      }
+      else{
+        element.setAttribute('download', '{{ name }}{{ code }}.txt');
+
+      }
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      element.click();
+
+
+    </script>
+
+    </body
+    

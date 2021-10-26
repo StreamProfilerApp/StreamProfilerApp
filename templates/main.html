@@ -1,0 +1,193 @@
+<html lang="en">
+  <head>
+    <title>Quickχ v0.1</title>
+    <link
+      rel="stylesheet"
+      href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"
+    />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+
+    <style>
+      #map {
+        width: 900px;
+        height: 440px;
+      }
+    </style>
+    <style type="text/css">
+      .line {
+        fill: none;
+        stroke: #ffab00;
+        stroke-width: 3;
+      }
+
+      .overlay {
+        fill: none;
+        pointer-events: all;
+      }
+
+      .dot {
+        fill: #ffab00;
+        stroke: #fff;
+      }
+
+      .focus circle {
+        fill: none;
+        stroke: steelblue;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <!-- D3 script modified from https://bl.ocks.org/gordlea/27370d1eea8464b04538e6d8ced39e89 by Gord Lea, MIT license -->
+
+    <script>
+    document.write('<div class="row">')
+    document.write('<div class="column"></div>')
+      
+
+        var address = window.location.search
+        var plist = new URLSearchParams(address)
+        var d8 = plist.get('d8')
+        //var mars = plist.get('user_wants_to_leave_earth')
+        var code = {{ code }};
+        var dem2 = plist.get('dem2')
+        var map = L.map('map').setView([{{ lat1 }}, {{ lon1 }}], {{ z }});
+          map.on('click',
+              function(e){
+                  var c = e.latlng;
+                  var lat = c.lat;
+                  var lng = c.lng;
+                  var zoom = map.getZoom()
+                  var html = 'Profile to elevation: <form action = "/downstream"><br><input type="text" id="elev" name="elev" value = "{{ elevl }}""><br> Gaussian smoothing level (sigma): <form action = "/downstream"><br><input type="text" id="smooth" name="smooth" value = "3"><br>  <input type="hidden" id="code" name = "code" value= "{{ code }}" > <input type="hidden" id="dem2" name = "dem2" value= '+dem2+' > <input type="hidden" id="zoom" name = "zoom" value= '+zoom+' > <input type="hidden" id="longitude" name = "longitude" value= '+lng+' > <input type="hidden" id="latitude" name = "latitude" value= '+lat+' ><input type="hidden" id="d8" name = "d8" value= '+d8+' > <input type="submit" value="Submit"> </form>'
+                  var m1 = L.marker(e.latlng, {draggable:'true'}).addTo(map)
+                  .bindPopup(html).openPopup();
+          });
+
+
+
+
+      var marker3 = L.marker([1,1]).addTo(map);
+      if (0){
+var baselayer = new L.tileLayer('http://s3-eu-west-1.amazonaws.com/whereonmars.cartodb.net/celestia_mars-shaded-16k_global/{z}/{x}/{y}.png', {
+			zoom: 3,
+			tms: true,
+		}).addTo(map).setZIndex(0)
+
+          var polyline = L.polyline({{ data }}, {weight: 3}).addTo(map);
+      }
+      else{
+        L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+          {
+            maxZoom: 17,
+            minZoom: 1
+          }).addTo(map);
+          var polyline = L.polyline({{ data }}, {weight: 3}).addTo(map);
+        }
+            if (d8 == 1){
+                document.write('<br> Currently using d8 flow routing.  Use <a href="{{ ('profiler') }}?d8=0"> Use hydrosheds </a> ')
+              }
+                else{
+                     document.write('<br> Currently using Hydrosheds DEM and flow routing, which is better for lowlands and large rivers. For high, steep rivers, <a href="{{ ('profiler') }}?d8=1"> use d8 flow routing</a>.')
+                }
+      if ({{mainpage}} == 0) {
+        document.write('<br> Move cursor along the plot to see its placement.  Scroll down for more plotting and downloading options')
+
+
+          
+      var margin = {top: 50, right: 50, bottom: 50, left: 50}
+        , width = 500
+        , height = 150;
+
+      var xScale = d3.scaleLinear()
+          .domain([0, {{ maxdist }}]) // input
+          .range([0, width]); // output
+          
+      var yScale = d3.scaleLinear()
+          .domain([{{ maxz }}, {{ minz }}])
+          .range([0, height]); // output
+
+      var line = d3.line()
+          .x(function(d) { return xScale(d[0]); })
+          .y(function(d) { return yScale(d[1]); })
+          .curve(d3.curveMonotoneX)
+
+      var svg = d3.select("body").append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      svg.append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(xScale));
+
+      svg.append("text")
+        .attr("transform",
+              "translate(" + (width/2) + " ," +
+                             (height + margin.top + 1) + ")")
+        .style("text-anchor", "middle")
+        .text("Distance (km)");
+
+      svg.append("g")
+          .attr("class", "y axis")
+          .call(d3.axisLeft(yScale));
+
+      svg.append("path")
+          .datum({{ zdata }})
+          .attr("class", "line")
+          .attr("d", line);
+      var marker2 = svg.append("circle");
+      marker2.attr("r", 5);
+
+      function mindist(a,b){
+          var lmin = 9999999
+          var imin = 0
+          for (let i = 0; i < a.length; i++) {
+              ls = Math.abs(a[i] - b)
+              if (ls < lmin){
+
+                  lmin = ls
+                  imin = i
+              }
+          }
+
+          return imin
+      }
+    
+       svg.on('mousemove', function() {
+           var coords = d3.pointer( event );
+           marker2.attr('transform',"translate(" + coords[0] + "," + coords[1] + ")")
+           l = coords[0] / width * {{ maxdist }}
+
+           var i1 = mindist({{ dist }}, l)
+           ll = {{ data }}[i1]
+           marker3.setLatLng(new L.LatLng(ll[0], ll[1]))
+          });
+
+
+         document.write('</div>')
+          
+          document.write('<p> </p>')
+          document.write('<a href="{{ url_for('chiplot') }}?code={{ code }}" target="blank"> Chi-Elevation Profile </a>')
+          document.write('<p> </p>')
+
+          document.write('<p> </p>')
+          document.write('Download: <a href="{{ url_for('get_elev') }}?code={{ code }}" target="blank"> Elevation </a>')
+          document.write(', ')
+          document.write('<a href="{{ url_for('get_dist') }}?code={{ code }}" target="blank"> Distance downstream </a>')
+          document.write(', <a href="{{ url_for('get_acc') }}?code={{ code }}" target="blank"> acc </a>')
+          document.write(', <a href="{{ url_for('get_chi') }}?code={{ code }}" target="blank"> χ </a>')
+          document.write(', <a href="{{ url_for('get_shp') }}?code={{ code }}" target="blank"> shapefile </a>')
+
+          }
+                else{
+              document.write('{{ err }}')
+
+              document.write('<br> Click on headwaters to begin (please wait up to 30 seconds to load).  A few browsers have reported timeout error for large rivers, in which case it will probably work to hit "refresh"')
+
+          }
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+<html>
+<head>
+  <title> Download </title>
+</head>
+<body>
+    <sc
+        var element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent("{{ data }}"));
+      element.setAttribute('download', '{{ name }}{{ code }}.txt');
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      element.click();
+    <a href = '""{{ data }}"'> Download </a>
+</body
