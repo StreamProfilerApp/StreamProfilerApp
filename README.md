@@ -1,5 +1,5 @@
 
-# QuickChi
+# ProfilerApp
 Global stream profiler web app. 
 
 To set up, add appropriate directories in profiler_app.py. Tests can be run on both the server and to verify integrity of the data
